@@ -75,8 +75,8 @@ class Crawler:
         time.sleep(3)
 
     def scroll_down(self, page):
-        # Works but... maybe we need to scroll slower to capture more data?
-        # Now it's just a quick jump to the bottom of the page.
+        # TODO: Make the scrolling step-by-step to evade bot-detection
+        print("Scrolling down...")
         page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
         time.sleep(3)
 
@@ -96,11 +96,14 @@ class Crawler:
             page.goto('https://www.'+url)
             time.sleep(10)  # TODO this has to be 10 according to the assignment
             url_core = url.split('\\')[0].strip().replace('.', '_')
-            page.screenshot(path=f"screenshots/{url_core}_before_cookies.png")
+            print(f"Screenshotting {url_core}_before_cookies.png")
+            page.screenshot(path=f"screenshots/{url_core}_before_cookies.png", full_page=True)
             self.accept_cookies(page=page)
-            page.screenshot(path=f"screenshots/{url_core}_after_cookies.png")
+            print(f"Screenshotting {url_core}_after_cookies.png")
+            page.screenshot(path=f"screenshots/{url_core}_after_cookies.png", full_page=True)
             self.scroll_down(page=page)
-
+            # HAR files and video get saved when the context is closed
+            print("Saving video and HAR files...")
             context.close()
             browser.close()
 
