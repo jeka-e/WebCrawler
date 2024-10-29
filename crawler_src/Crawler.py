@@ -72,6 +72,13 @@ class Crawler:
             accept_button.click()
         else:
             print("Proceeding without accepting")
+        time.sleep(3)
+
+    def scroll_down(self, page):
+        # Works but... maybe we need to scroll slower to capture more data?
+        # Now it's just a quick jump to the bottom of the page.
+        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        time.sleep(3)
 
 
     def crawl(self, url):
@@ -81,15 +88,20 @@ class Crawler:
         # TODO: Implement the function to parse the URL
         with sync_playwright() as p:
             #Launch with visual browser
+            url_core = url.split('\\')[0].strip().replace('.', '_')
             browser = p.chromium.launch(headless=False)
-            context = browser.new_context() # new profile
+            context = browser.new_context(record_har_path=f"har_files/output_har_{url_core}.json",
+                                          record_video_dir="videos/") # new profile
             page = context.new_page()
             page.goto('https://www.'+url)
-            time.sleep(5)  # TODO this has to be 10 according to the assignment
-
+            time.sleep(10)  # TODO this has to be 10 according to the assignment
+            url_core = url.split('\\')[0].strip().replace('.', '_')
+            page.screenshot(path=f"screenshots/{url_core}_before_cookies.png")
             self.accept_cookies(page=page)
+            page.screenshot(path=f"screenshots/{url_core}_after_cookies.png")
+            self.scroll_down(page=page)
 
-            time.sleep(2)
+            context.close()
             browser.close()
 
             # nytimes.com - press continue to scroll through website - press 2 buttons
