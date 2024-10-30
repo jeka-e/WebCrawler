@@ -84,6 +84,20 @@ class Crawler:
         print(f"Scrolled down fully")
         time.sleep(3)
 
+    def close_pop_ups(self, page):
+        overlay = page.locator("div[role='dialog'], div.modal, div.overlay, div.popup")
+        if overlay.count() > 0:
+            close_button = page.locator(
+                "button.modal__close-button, button[role='button']:has-text('Close')"
+            )
+            if close_button.count() == 1:
+                close_button.click()
+                print("Pop-up closed successfully.")
+            else:
+                print("Close button not found or not visible.")
+
+
+
     def crawl(self, url):
         print("============================================================")
         print(f'Crawling {url}')
@@ -103,6 +117,8 @@ class Crawler:
             print(f"Screenshotting {url_core}_before_cookies.png")
             page.screenshot(path=f"{self.output_path}/{url_core}_{url_type}_pre_consent.png", full_page=True)
             self.accept_cookies(page=page)
+            self.close_pop_ups(page=page)
+
             print(f"Screenshotting {url_core}_after_cookies.png")
             page.screenshot(path=f"{self.output_path}/{url_core}_{url_type}_post_consent.png", full_page=True)
             self.scroll_down(page=page)
