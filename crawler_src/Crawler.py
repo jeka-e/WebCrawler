@@ -22,8 +22,8 @@ class Crawler:
             'Accetta e chiudi', 
             'Accetta', 
             'ACCETTA E CONTINUA', 
-            'Yes, I agree', 
             'I agree', 
+            'Yes, I agree', 
             'Continue']
 
     def search_button_or_link(self, page, word):
@@ -32,6 +32,7 @@ class Crawler:
         # accept_button = page.locator(f"button:has-text('{word}')")
         if accept_button.count() == 1:
             print("BUTTON FOUND")
+            print(accept_button.bounding_box())
             return accept_button
         
         # try to find a span inside button
@@ -48,6 +49,15 @@ class Crawler:
             return accept_link
 
     def find_accept_element(self, page):
+        # iterate through all iframes in reverse order, needed for some popups
+        print("Searching in frames")
+        for word in self.accept_words:
+            print(word)
+            for frame in page.frames[::-1]:
+                accept_element = self.search_button_or_link(frame, word)
+                if accept_element:
+                    return accept_element
+        print("No elements found in the frames")
         # try to accept on the main page
         print("Searching on main page")
         for word in self.accept_words:
@@ -56,15 +66,6 @@ class Crawler:
             if accept_element:
                 return accept_element
         print()
-        print("Didn't find accept elements on the main page, iterating over frames")
-        # if not found, iterate through all iframes
-        for word in self.accept_words:
-            print(word)
-            for frame in page.frames:
-                accept_element = self.search_button_or_link(frame, word)
-                if accept_element:
-                    return accept_element
-        print("No elements found in the frames")
         return None
 
     def accept_cookies(self, page):
@@ -98,7 +99,7 @@ class Crawler:
         with sync_playwright() as p:
             #Launch with visual browser
             url_core = url.strip()
-            browser = p.chromium.launch(headless=False)
+            browser = p.chromium.launch(headless=True)
             url_type = "news" if "news" in self.output_path else "gov"
             context = browser.new_context(record_har_path=f"{self.output_path}/{url_core}_{url_type}.har",
                                           record_video_dir=f"{self.output_path}/") # new profile
