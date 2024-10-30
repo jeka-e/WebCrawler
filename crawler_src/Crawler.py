@@ -1,4 +1,6 @@
 import time
+import random
+import os
 
 from playwright.sync_api import sync_playwright
 
@@ -77,6 +79,9 @@ class Crawler:
     def scroll_down(self, page):
         # TODO: Make the scrolling step-by-step to evade bot-detection
         for percentage in range(10, 100, 10):
+            if percentage != 100:
+                # To make it less robotic
+                percentage += random.randint(-5, 5)
             print(f"Scrolling down to {percentage}%")
             page.evaluate(f'window.scrollTo(0, document.body.scrollHeight*{percentage/100})')
             # Just so that it looks nicer on the video, and gives more time to load things
@@ -109,6 +114,9 @@ class Crawler:
             # HAR files and video get saved when the context is closed
             print("Saving video and HAR files...")
             context.close()
+            path = page.video.path()
+            # Rename the video file in path
+            os.rename(path, f"{self.output_path}/{url_core}_{url_type}.webm")
             browser.close()
 
             # nytimes.com - press continue to scroll through website - press 2 buttons
