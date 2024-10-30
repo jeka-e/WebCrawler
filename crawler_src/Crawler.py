@@ -76,8 +76,12 @@ class Crawler:
 
     def scroll_down(self, page):
         # TODO: Make the scrolling step-by-step to evade bot-detection
-        print("Scrolling down...")
-        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        for percentage in range(10, 100, 10):
+            print(f"Scrolling down to {percentage}%")
+            page.evaluate(f'window.scrollTo(0, document.body.scrollHeight*{percentage/100})')
+            # Just so that it looks nicer on the video, and gives more time to load things
+            time.sleep(0.5)
+        print(f"Scrolled down fully")
         time.sleep(3)
 
 
