@@ -76,8 +76,12 @@ class Crawler:
 
     def scroll_down(self, page):
         # TODO: Make the scrolling step-by-step to evade bot-detection
-        print("Scrolling down...")
-        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        for percentage in range(10, 100, 10):
+            print(f"Scrolling down to {percentage}%")
+            page.evaluate(f'window.scrollTo(0, document.body.scrollHeight*{percentage/100})')
+            # Just so that it looks nicer on the video, and gives more time to load things
+            time.sleep(0.5)
+        print(f"Scrolled down fully")
         time.sleep(3)
 
     def crawl(self, url):
@@ -87,19 +91,20 @@ class Crawler:
         # TODO: Implement the function to parse the URL
         with sync_playwright() as p:
             #Launch with visual browser
-            url_core = url.split('\\')[0].strip().replace('.', '_')
+            url_core = url.strip()
             browser = p.chromium.launch(headless=False)
-            context = browser.new_context(record_har_path=f"har_files/output_har_{url_core}.json",
-                                          record_video_dir="videos/") # new profile
+            url_type = "news" if "news" in self.output_path else "gov"
+            context = browser.new_context(record_har_path=f"{self.output_path}/{url_core}_{url_type}.har",
+                                          record_video_dir=f"{self.output_path}/") # new profile
             page = context.new_page()
             page.goto('https://'+url)
             time.sleep(10)
             url_core = url.split('\\')[0].strip().replace('.', '_')
             print(f"Screenshotting {url_core}_before_cookies.png")
-            page.screenshot(path=f"screenshots/{url_core}_before_cookies.png", full_page=True)
+            page.screenshot(path=f"{self.output_path}/{url_core}_{url_type}_pre_consent.png", full_page=True)
             self.accept_cookies(page=page)
             print(f"Screenshotting {url_core}_after_cookies.png")
-            page.screenshot(path=f"screenshots/{url_core}_after_cookies.png", full_page=True)
+            page.screenshot(path=f"{self.output_path}/{url_core}_{url_type}_post_consent.png", full_page=True)
             self.scroll_down(page=page)
             # HAR files and video get saved when the context is closed
             print("Saving video and HAR files...")
