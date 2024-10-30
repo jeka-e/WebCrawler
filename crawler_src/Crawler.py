@@ -95,7 +95,7 @@ class Crawler:
             close_button = page.locator(
                 "button.modal__close-button, button[role='button']:has-text('Close')"
             )
-            if close_button.count() == 1:
+            if close_button.is_visible():
                 close_button.click()
                 print("Pop-up closed successfully.")
             else:
@@ -124,7 +124,7 @@ class Crawler:
             end_time = time.time()
             page_load_time = end_time - start_time
             print(f"Page load time: {page_load_time}")
-            time.sleep(10)  # TODO this has to be 10 according to the assignment
+            time.sleep(10)
             print(f"Screenshotting {url_core}_before_cookies.png")
             page.screenshot(path=f"{self.output_path}/{url_core}_{url_type}_pre_consent.png", full_page=True)
             self.accept_cookies(page=page)
