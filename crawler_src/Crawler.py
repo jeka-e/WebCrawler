@@ -1,4 +1,6 @@
 import time
+import random
+import os
 
 from playwright.sync_api import sync_playwright
 
@@ -20,8 +22,8 @@ class Crawler:
             'Accetta e chiudi', 
             'Accetta', 
             'ACCETTA E CONTINUA', 
-            'Yes, I agree', 
             'I agree', 
+            'Yes, I agree', 
             'Continue']
 
     def search_button_or_link(self, page, word):
@@ -30,6 +32,7 @@ class Crawler:
         # accept_button = page.locator(f"button:has-text('{word}')")
         if accept_button.count() == 1:
             print("BUTTON FOUND")
+            print(accept_button.bounding_box())
             return accept_button
         
         # try to find a span inside button
@@ -46,6 +49,15 @@ class Crawler:
             return accept_link
 
     def find_accept_element(self, page):
+        # iterate through all iframes in reverse order, needed for some popups
+        print("Searching in frames")
+        for word in self.accept_words:
+            print(word)
+            for frame in page.frames[::-1]:
+                accept_element = self.search_button_or_link(frame, word)
+                if accept_element:
+                    return accept_element
+        print("No elements found in the frames")
         # try to accept on the main page
         print("Searching on main page")
         for word in self.accept_words:
@@ -54,15 +66,6 @@ class Crawler:
             if accept_element:
                 return accept_element
         print()
-        print("Didn't find accept elements on the main page, iterating over frames")
-        # if not found, iterate through all iframes
-        for word in self.accept_words:
-            print(word)
-            for frame in page.frames:
-                accept_element = self.search_button_or_link(frame, word)
-                if accept_element:
-                    return accept_element
-        print("No elements found in the frames")
         return None
 
     def accept_cookies(self, page):
@@ -77,6 +80,9 @@ class Crawler:
     def scroll_down(self, page):
         # TODO: Make the scrolling step-by-step to evade bot-detection
         for percentage in range(10, 100, 10):
+            if percentage != 100:
+                # To make it less robotic
+                percentage += random.randint(-5, 5)
             print(f"Scrolling down to {percentage}%")
             page.evaluate(f'window.scrollTo(0, document.body.scrollHeight*{percentage/100})')
             # Just so that it looks nicer on the video, and gives more time to load things
@@ -106,14 +112,17 @@ class Crawler:
         with sync_playwright() as p:
             #Launch with visual browser
             url_core = url.strip()
-            browser = p.chromium.launch(headless=False)
+            browser = p.chromium.launch(headless=True)
             url_type = "news" if "news" in self.output_path else "gov"
             context = browser.new_context(record_har_path=f"{self.output_path}/{url_core}_{url_type}.har",
                                           record_video_dir=f"{self.output_path}/") # new profile
             page = context.new_page()
+            start_time = time.time()
             page.goto('https://'+url)
-            time.sleep(10)
-            url_core = url.split('\\')[0].strip().replace('.', '_')
+            end_time = time.time()
+            page_load_time = end_time - start_time
+            print(f"Page load time: {page_load_time}")
+            time.sleep(10)  # TODO this has to be 10 according to the assignment
             print(f"Screenshotting {url_core}_before_cookies.png")
             page.screenshot(path=f"{self.output_path}/{url_core}_{url_type}_pre_consent.png", full_page=True)
             self.accept_cookies(page=page)
@@ -125,5 +134,8 @@ class Crawler:
             # HAR files and video get saved when the context is closed
             print("Saving video and HAR files...")
             context.close()
+            path = page.video.path()
+            # Rename the video file in path
+            os.rename(path, f"{self.output_path}/{url_core}_{url_type}.webm")
             browser.close()
         
