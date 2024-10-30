@@ -32,7 +32,6 @@ class Crawler:
         # accept_button = page.locator(f"button:has-text('{word}')")
         if accept_button.count() == 1:
             print("BUTTON FOUND")
-            print(accept_button.bounding_box())
             return accept_button
         
         # try to find a span inside button
@@ -112,13 +111,16 @@ class Crawler:
         with sync_playwright() as p:
             #Launch with visual browser
             url_core = url.strip()
-            browser = p.chromium.launch(headless=True)
+            browser = p.chromium.launch(headless=False)
             url_type = "news" if "news" in self.output_path else "gov"
             context = browser.new_context(record_har_path=f"{self.output_path}/{url_core}_{url_type}.har",
                                           record_video_dir=f"{self.output_path}/") # new profile
             page = context.new_page()
             start_time = time.time()
-            page.goto('https://'+url)
+            if (url.strip() == "ouest-france.fr"):
+                page.goto('https://www.'+url)
+            else:
+                page.goto('https://'+url)
             end_time = time.time()
             page_load_time = end_time - start_time
             print(f"Page load time: {page_load_time}")
