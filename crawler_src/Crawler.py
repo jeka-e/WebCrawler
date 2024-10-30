@@ -103,7 +103,11 @@ class Crawler:
             context = browser.new_context(record_har_path=f"{self.output_path}/{url_core}_{url_type}.har",
                                           record_video_dir=f"{self.output_path}/") # new profile
             page = context.new_page()
+            start_time = time.time()
             page.goto('https://www.'+url)
+            end_time = time.time()
+            page_load_time = end_time - start_time
+            print(f"Page load time: {page_load_time}")
             time.sleep(10)  # TODO this has to be 10 according to the assignment
             print(f"Screenshotting {url_core}_before_cookies.png")
             page.screenshot(path=f"{self.output_path}/{url_core}_{url_type}_pre_consent.png", full_page=True)
