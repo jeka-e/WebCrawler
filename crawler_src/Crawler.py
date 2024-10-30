@@ -80,7 +80,6 @@ class Crawler:
         page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
         time.sleep(3)
 
-
     def crawl(self, url):
         print("============================================================")
         print(f'Crawling {url}')
@@ -93,8 +92,8 @@ class Crawler:
             context = browser.new_context(record_har_path=f"har_files/output_har_{url_core}.json",
                                           record_video_dir="videos/") # new profile
             page = context.new_page()
-            page.goto('https://www.'+url)
-            time.sleep(10)  # TODO this has to be 10 according to the assignment
+            page.goto('https://'+url)
+            time.sleep(10)
             url_core = url.split('\\')[0].strip().replace('.', '_')
             print(f"Screenshotting {url_core}_before_cookies.png")
             page.screenshot(path=f"screenshots/{url_core}_before_cookies.png", full_page=True)
@@ -106,6 +105,4 @@ class Crawler:
             print("Saving video and HAR files...")
             context.close()
             browser.close()
-
-            # nytimes.com - press continue to scroll through website - press 2 buttons
-             # https://www.nbcnews.com/ - continue window as well
+        
