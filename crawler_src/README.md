@@ -17,7 +17,3 @@ Info to collect:
 Problems:
 - The accept cookies button often can't be identified by 'button' role, it can be a link or a span. But we want to search by role because we don't to just click on text. Solution - look for button or link with not exact match and hope the necessary text is mentioned somewhere in the element.
 - the usual Playwright search doesn't search through iframes
-
-
-nu.nl
-bbc.co.uk
